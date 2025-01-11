@@ -1,5 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from datetime import datetime
+import csv
+from io import StringIO
+from flask import Response
 
 app = Flask(__name__)
 app.secret_key = "atm_secret_key"  # For session management and flash messages
@@ -112,6 +115,32 @@ def statement():
         flash("Please log in to access the ATM.", "error")
         return redirect(url_for("login"))
     return render_template("statement.html", transactions=account["transactions"])
+
+
+
+@app.route("/download_statement")
+def download_statement():
+    """Generate and download the transaction statement as a CSV file."""
+    if not session.get("authenticated"):
+        flash("Please log in to access the ATM.", "error")
+        return redirect(url_for("login"))
+    
+    # Prepare the CSV in memory
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Date", "Transaction Type", "Amount"])  # Header row
+    
+    for transaction in account["transactions"]:
+        writer.writerow([transaction["date"], transaction["type"], transaction["amount"]])
+    
+    # Create a downloadable response
+    output.seek(0)
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=transaction_statement.csv"}
+    )
+
     
 
 if __name__ == "__main__":
