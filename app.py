@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "atm_secret_key"  # For session management and flash messages
@@ -6,7 +7,8 @@ app.secret_key = "atm_secret_key"  # For session management and flash messages
 # Simulated user data
 account = {
     "pin": "1234",  # Default PIN
-    "balance": 500.0
+    "balance": 500.0,
+    "transactions": []  # To store transaction logs
 }
 
 @app.route("/", methods=["GET", "POST"])
@@ -62,6 +64,12 @@ def deposit():
                 flash("Amount must be greater than zero.", "error")
             else:
                 account["balance"] += amount
+                # Log the transaction
+                account["transactions"].append({
+                    "type": "Deposit",
+                    "amount": amount,
+                    "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                })
                 flash(f"${amount:.2f} deposited successfully!", "success")
                 return redirect(url_for("balance"))
         except ValueError:
@@ -84,12 +92,27 @@ def withdraw():
                 flash("Insufficient funds.", "error")
             else:
                 account["balance"] -= amount
+                # Log the transaction
+                account["transactions"].append({
+                    "type": "Withdrawal",
+                    "amount": amount,
+                    "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                })
                 flash(f"${amount:.2f} withdrawn successfully!", "success")
                 return redirect(url_for("balance"))
         except ValueError:
             flash("Invalid input. Please enter a number.", "error")
     return render_template("withdraw.html")
 
+
+@app.route("/statement")
+def statement():
+    """Display the transaction statement."""
+    if not session.get("authenticated"):
+        flash("Please log in to access the ATM.", "error")
+        return redirect(url_for("login"))
+    return render_template("statement.html", transactions=account["transactions"])
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
