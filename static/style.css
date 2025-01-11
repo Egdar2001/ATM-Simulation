@@ -68,3 +68,17 @@ li {
 .success {
     color: #00ff00;
 }
+
+.download-button {
+    background-color: #00ccff; /* Light blue for download */
+    color: #000;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.download-button:hover {
+    background-color: #33ddff;
+}
