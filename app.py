@@ -14,6 +14,7 @@ account = {
     "transactions": []  # To store transaction logs
 }
 
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     """Handle PIN authentication."""
